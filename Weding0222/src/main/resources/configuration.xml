@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN" "http://mybatis.org/dtd/mybatis-3-config.dtd">
+
+<configuration>
+	<typeAliases>
+		<typeAlias alias="Product" type="com.oracle.Weding.dto.Product"/>
+		<typeAlias alias="Board" type="com.oracle.Weding.dto.Board"/>
+		<typeAlias alias="Alarm" type="com.oracle.Weding.dto.Alarm"/>
+		<typeAlias alias="Member" type="com.oracle.Weding.dto.Member"/>
+		<typeAlias alias="Orders" type="com.oracle.Weding.dto.Orders"/>
+		<typeAlias alias="Dibs" type="com.oracle.Weding.dto.Dibs"/>
+		<typeAlias alias="Cat" type="com.oracle.Weding.dto.Cat"/>
+		<typeAlias alias="Pname" type="com.oracle.Weding.dto.Pname"/>
+	</typeAliases>
+</configuration>
