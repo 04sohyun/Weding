@@ -20,7 +20,7 @@
 	rel="stylesheet"
 	integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3"
 	crossorigin="anonymous">
-<link href="./resources/css/fundDetail.css" rel="stylesheet">
+<link href="css/fundDetail.css" rel="stylesheet">
 <style>
 button{
 	width: 350px;
@@ -124,14 +124,14 @@ function clip(){
 				</div>
 				<div class="row" style="margin-top: 20px;">
 					<div class="col">
-						<p class="b"><h2>${product.p_description}</h2></p>
+						<h2 class="b">${product.p_description}</h2>
 					</div>
 				</div>
 			</div>
 			<div class="row" style="width: 80%; margin-top: 20px;">
-				<div class="col" style="background-color: rgb(230, 226, 208);">
-					<div>
-						<div class="col">${product.p_goalprice}원</div>
+				<div class="col" style="background-color: #F7F8F9;">
+					<div style="text-align=center; padding: 10px;">
+						<div class="col">목표금액 <fmt:formatNumber value="${product.p_goalprice}"/>원</div>
 						<c:set var="start" value="${product.p_start}"/>
 						<c:set var="end" value="${product.p_end}"/>
 						<fmt:parseDate var="startDate" value="${start}" pattern="yy-MM-dd" /> 

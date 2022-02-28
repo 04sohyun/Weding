@@ -65,7 +65,7 @@
             <!-- 이미지 설정3 -->
             <div class="item">
              <a href="fundingDetail?p_num=66&p_condition=1">
-                <img src="./resources/img/pengha.png" style="margin: auto; height: 350px; width:50%;">
+                <img src="images/peng.png" style="margin: auto; height: 350px; width:50%;">
                 <div class="carousel-caption" style="text-align: left; color: #2F3A8F;">
                     <h2>펭수와 함께</h2> 
                     <h2>눈치정복할 준비되셨습니까?</h2>
@@ -121,7 +121,7 @@
 <div class="container">
 	<div class="row" style="width: 900px; margin: auto;">
 		<div class="col" style="padding: 55px 90px 55px 80px; margin-top: 40px; width: 500px; background-repeat:no-repeat; background-size:cover; font-size:18px; color:#2F3A8F; 
-			background-image: url(./resources/img/banner.png)"><h2>직접 체험하고 펀딩하세요</h2> <p>위딩에서 만나는 오픈예정 펀딩</p></div>
+			background-image: url(images/sub-banner-img.png)"><h2>직접 체험하고 펀딩하세요</h2> <p>위딩에서 만나는 오픈예정 펀딩</p></div>
 	</div>
 
 	<div class="row row-cols-1 row-cols-md-3 g-4" style="margin-top: 30px;">

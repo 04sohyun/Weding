@@ -8,15 +8,16 @@
 <%@ include file="header.jsp"%>
 <link rel="stylesheet" href="css/fonts.css">
 <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
-<script	src="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+<script
+	src="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
 
 <style type="text/css">
 .random-wrap {
 	width: 75%;
-	height: 780px;
+	height: 675px;
 	padding: 0 20px;
 	float: left;
-	margin-bottom: 100px;
+	margin-bottom: 75px;
 }
 
 .intro-title {
@@ -62,9 +63,9 @@
 
 .popular-wrap {
 	width: 25%;
-	height: 780px;
+	height: 675px;
 	float: left;
-	margin-bottom: 100px;
+	margin-bottom: 75px;
 }
 
 .popular-prod {
@@ -143,6 +144,7 @@
 .box-challenge {
 	margin-bottom: 60px;
 }
+
 </style>
 </head>
 <body>
@@ -237,7 +239,7 @@
 							<img
 								src="${pageContext.request.contextPath}/upload/${random.p_image1}">
 							<div class="random-prod-title">${random.p_name}</div>
-							<div class="random-prod-title">달성률 ${random.attainment}% |
+							<div class="random-prod-title" style="font-size:13px;">달성률 ${random.attainment}% |
 								${random.mini_content}</div>
 						</div>
 					</c:forEach>
@@ -256,10 +258,8 @@
 							style="cursor: pointer">
 							<div class="popular-prod-text">
 								<div class="random-prod-title">${popular.p_name}</div>
-								<div class="random-prod-title">
-									달성률 ${popular.attainment}% |
-									<fmt:formatNumber value="${popular.p_price}" />
-								</div>
+								<div class="random-prod-title" style="font-size:13px;">달성률 ${popular.attainment}%
+									| ${popular.mini_content}</div>
 							</div>
 							<div class="popular-prod-img">
 								<img
@@ -274,7 +274,7 @@
 
 			<!-- 오늘 오픈한 상품 -->
 			<div class="open">
-				<div class="intro-title">오늘 오픈한 상품</div>
+				<div class="intro-title">오늘 오픈 상품</div>
 				<div class="open-prod-wrap">
 					<!-- 반복 여기서부터 -->
 					<c:forEach var="open" items="${openProduct }">
@@ -287,7 +287,7 @@
 							</div>
 							<div class="open-prod-text">
 								<div class="open-prod-title">${open.p_name }</div>
-								<div class="open-prod-title">달성률 ${open.attainment}% |
+								<div class="open-prod-title" style="font-size:13px;">달성률 ${open.attainment}% |
 									${open.mini_content }</div>
 							</div>
 						</div>
@@ -298,7 +298,7 @@
 
 			<!-- 리뷰 상품 -->
 			<div class="open">
-				<div class="intro-title">리뷰 상품</div>
+				<div class="intro-title">리뷰가 있는 상품</div>
 				<div class="open-prod-wrap">
 					<!-- 반복 여기서부터 -->
 					<c:forEach var="review" items="${reviewProduct }">
@@ -311,7 +311,7 @@
 							</div>
 							<div class="open-prod-text">
 								<div class="open-prod-title">${review.p_name }</div>
-								<div class="open-prod-title">달성률 ${review.attainment}% |
+								<div class="open-prod-title" style="font-size:13px;">달성률 ${review.attainment}% |
 									${review.mini_content }</div>
 							</div>
 						</div>

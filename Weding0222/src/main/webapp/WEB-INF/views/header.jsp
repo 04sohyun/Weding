@@ -1,9 +1,8 @@
-<%@page import="com.oracle.Weding.dto.Member"%>
 <%@ page contentType="text/html; charset=UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
 
-
+<link rel="icon" type="image/png"  href="images/favicon.png"/>
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
 <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
 <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap-theme.min.css">
@@ -12,15 +11,46 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300&display=swap" rel="stylesheet">
 <style>
-	*{
-		font-family: 'Noto Sans KR', sans-serif;
-		font-family: 'Roboto', sans-serif;
+	* {
+		font-family: 'Noto Sans KR';
 		font-size: 15px;
+	}
+	
+	.sub-banner {
+		width: 100vw;
+		margin-left: calc(-50vw + 50%);
+		height: 15rem;
+		text-align: center;
+		background-color: #2F3A8F;
+		margin-bottom: 50px;
+	}
+	
+	.sub-title {
+		font-size: 2.2em;
+		line-height: 15rem;
+		color: #fff;
+	}
+	
+	a {
+		color:#000;
+	}
+	
+	a:link {
+		text-decoration: none;
+	}
+	
+	a:visited {
+		color:#000;
+	}
+	
+	a:hover {
+		color:#000;
+		text-decoration: none;
 	}
 </style>
 <div class="container">
-    <header class="d-flex flex-wrap align-items-center justify-content-center justify-content-md-between py-2 mb-3 border-bottom">
-      <a href="<c:url value='main'/>" class="main"><img src="http://placehold.it/150x50"></a>
+    <header class="d-flex flex-wrap align-items-center justify-content-center justify-content-md-between py-2">
+      <a href="<c:url value='main'/>" class="main"><img src="images/logo.png"></a>
 
       <ul class="nav">
         <li><a href="<c:url value='beforeFundList'/>" class="nav-link px-2 link-dark">펀딩예정</a></li>

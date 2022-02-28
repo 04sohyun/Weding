@@ -3,8 +3,8 @@
 <%@include file="../header.jsp"%>
 <!DOCTYPE html>
 <html>
-
 <head>
+<title>비밀번호 변경</title>
 <meta charset="UTF-8">
 <!-- CSS only -->
 <link
@@ -17,93 +17,60 @@
 .b {
 	word-break: break-all;
 }
+
 </style>
 <script>
-function pwCheck(){
-	if(document.memberPw.password.value!=document.memberPw.password_chk.value){
-		alert("비밀번호와 비밀번호 확인값이 서로 다릅니다.");
-		document.memberPw.password.value="";
-		document.memberPw.password_chk.value="";
-		document.memberPw.password.focus();
-		return false;
-	}else{
-		alert("비밀번호가 변경되었습니다.");
+	function pwCheck() {
+		if (document.memberPw.password.value != document.memberPw.password_chk.value) {
+			alert("비밀번호와 비밀번호 확인값이 서로 다릅니다.");
+			document.memberPw.password.value = "";
+			document.memberPw.password_chk.value = "";
+			document.memberPw.password.focus();
+			return false;
+		} else {
+			alert("비밀번호가 변경되었습니다.");
+			return true;
+		}
 		return true;
 	}
-	return true;
-}
 </script>
-
-
-
-<title>pwchangeForm</title>
 </head>
-
 <body>
 	<div class="container">
-		<div class="p-3 mb-2 bg-secondary text-white">
-			<div class="row">
-				<div class="col" style="text-align: center;">비밀번호변경</div>
-			</div>
+		<div class="sub-banner">
+			<h2 class="sub-title">비밀번호 변경</h2>
 		</div>
-		
-		
-
 		<div class="row">
-			<div class="col-2">
-				<%@include file = "menu.jsp"%>
-			</div>
+		<%@include file="menu.jsp"%>
 			<div class="col-2"></div>
-
-
-			<div class="col-8">
-			<form action="pwUpdate" method="post" name="memberPw" onsubmit="return pwCheck()">
-				<table>
+			<div class="col-4">
+				<form action="pwUpdate" method="post" name="memberPw"
+					onsubmit="return pwCheck()">
+					<table class="table">
+						<tr>
+							<td style="border: none">변경할 비밀번호</td>
+							<td style="border: none"><input type="password" class="form-control" style="font-size:12px;" name="password" placeholder="비밀번호입력"></td>
+						</tr>
+						<tr>
+							<td style="border: none">변경할 비밀번호 확인</td>
+							<td style="border: none"><input type="password" class="form-control" style="font-size:12px;" name="password_chk" placeholder="비밀번호 확인 입력"></td>
+						</tr>
+					</table>
 					<div class="row">
-						<div class="col-3">변경할 비밀번호</div>
-						<div class="col-7">
-							<input type="password" name="password" placeholder="비밀번호입력">
+						<div style="float: none; margin-top: 5rem;">
+							<input type="submit" style="background-color:#2F3A8F;color:#fff;font-size: 1em;width:100%" class="btn" value="비밀번호 변경">
 						</div>
 					</div>
-
-					<br>
-					<div class="row">
-						<div class="col-3">변경할 비밀번호 확인</div>
-						<div class="col-7">
-							<input type="password" name="password_chk" placeholder="비밀번호 확인 입력">
-						</div>
-					</div>
-
-					<br>
-
-					<div class="row">
-						<div class="col-lg-6" style="float: none; margin: auto;">
-							<input type="submit" class="btn btn-secondary" value="비밀번호 변경">
-						</div>
-					</div>
-				</table>
-			</form>	
+				</form>
 			</div>
-
-
-
-
-
-
-
-
-			<!-- JavaScript Bundle with Popper -->
-			<script
-				src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
-				integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p"
-				crossorigin="anonymous"></script>
-
-
-			<%@ include file="../footer.jsp"%>
+			<div class="col-4"></div>
+		</div>
+	</div>
+	<!-- JavaScript Bundle with Popper -->
+	<script
+		src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
+		integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p"
+		crossorigin="anonymous"></script>
+	<%@ include file="../footer.jsp"%>
 </body>
-
-
-
-
 </html>
-

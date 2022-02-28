@@ -1,185 +1,80 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
-    pageEncoding="UTF-8"%>
-<%@include file = "../header.jsp"%>
+   pageEncoding="UTF-8"%>
+<%@include file="../header.jsp"%>
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
-    <title>11문의내역</title>
-    <style>
-        a { color: #333; }
-        a:hover { color: #333; text-decoration: none; }
-
-        .side-menu {
-            width: 200px;
-            float: left;
-        }
-        .side-menu ul {
-            margin: 0;
-            padding: 0;
-            display: inline;
-        }
-        .side-menu ul li {
-            list-style-type: none;
-            margin-bottom: 5px;
-        }
-
-        .side-menu ul li:first-child {
-            font-size: 1.3em;
-            font-weight: bold;
-            margin-bottom: 30px;
-        }
-
-        .table {
-            width: 910px;
-            float: left;
-        }
-
-        footer {
-            clear: both;
-            width: 100%;
-            height: 50px;
-            background-color: gray;
-        }
-
-        .footer {
-            margin: 0 auto;
-            width: 1110px;
-            height: inherit;
-            line-height: 50px;
-            text-align: center;
-            color: white;
-        }
-
-        .sub-banner-wrap {
-            width: 100%;
-            height: 150px;
-            background-color: grey;
-            margin-bottom: 100px;
-        }
-
-        .sub-banner {
-            margin: 0 auto;
-            width: 1110px;
-            height: 150px;
-            line-height: 150px;
-            text-align: center;
-            font-weight: bold;
-            font-size: 1.8em;
-        }
-
-    </style>
+<title>Q&A 문의내역</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet"
+   href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+<style>
+.pg_btn{
+          text-align: center;
+          margin-bottom: 100px;
+       }
+       
+.paging {
+	width: fit-content;
+	margin: 0 auto;
+} 
+</style>
 </head>
 <body>
-    <div class="sub-banner-wrap">
-        <div class="sub-banner">
-            1:1문의답변
-        </div>
-    </div>
-    <div class="container">
-        <div class="side-menu">
-              <%@include file = "menu.jsp"%>
-        </div>
-        <table class="table table-bordered">
-            <tr>
-                <th>번호</th>
-                <th>제목</th>
-                <th>작성자</th>
-                <th>작성일</th>
-                <th>답변여부</th>
-            </tr>
+<div class="container">
+   <div class="sub-banner">
+      <h2 class="sub-title">Q&A 문의내역</h2>
+   </div>
+	<div class="row">
+      <%@include file="menu.jsp"%>
+      <div class="col-10">
+      <table class="table" style="text-align: center;">
+         <tr style="--bs-table-bg: #2F3A8F;color:#fff;">
+            <th>번호</th>
+            <th>글카테고리</th>
+            <th>제목</th>
+            <th>작성자</th>
+            <th>작성일</th>
+            <th>답변여부</th>
+         </tr>
+         <!-- 반복 여기서부터 -->
+         <c:forEach var="board" items="${sellerQna }">
+         <tr>
+            <td>${board.b_num }</td>
+            <td>${board.b_category }</td>
+            <td style="text-align: left;"><a href="boardDetail?b_num=${board.b_num }">${board.b_title }</a></td>
+            <td>${board.id }</td>
+            <td>${board.b_date }</td>
+            <td>${board.answer}</td>
+         </tr>
+         </c:forEach>
+         <!-- 여기까지 반복 -->
 
-            <!-- 반복 여기서부터 -->
-            <tr>
-                <td>1</td>
-                <td><a href="#">제목</a></td>
-                <td>홍길동</td>
-                <td>2022-01-22</td>
-                <td>N</td>
-            </tr>
-            <!-- 여기까지 반복 -->
+      </table>
+		<nav aria-label="..." class="paging">
+		  <ul class="pagination">
+		  	<c:if test="${pg.startPage > pg.pageBlock}">
+			    <li class="page-item">
+			      <a class="page-link" href="sellerQna?currentPage=${pg.startPage - pg.pageBlock}">&laquo;</a>
+			    </li>
+		    </c:if>
+		    <c:forEach var="i" begin="${pg.startPage}" end="${pg.endPage}">
+			    <li class="page-item">
+			    		<a class="page-link" href="sellerQna?currentPage=${i}">${i}</a>
+	    		</li>
+	   		</c:forEach>
+	   		<c:if test="${pg.endPage < pg.totalPage}">
+			    <li class="page-item">
+			      <a class="page-link" href="sellerQna?currentPage=${pg.startPage + pg.pageBlock}">&raquo;</a>
+			    </li>
+		    </c:if>
+		  </ul>
+		</nav>
 
-            <!-- 지워야되는 부분 여기서부터 -->
-            <tr>
-                <td>1</td>
-                <td>제목</td>
-                <td>홍길동</td>
-                <td>2022-01-22</td>
-                <td>N</td>
-            </tr>
-
-            <tr>
-                <td>1</td>
-                <td>제목</td>
-                <td>홍길동</td>
-                <td>2022-01-22</td>
-                <td>N</td>
-            </tr>
-
-            <tr>
-                <td>1</td>
-                <td>제목</td>
-                <td>홍길동</td>
-                <td>2022-01-22</td>
-                <td>N</td>
-            </tr>
-
-            <tr>
-                <td>1</td>
-                <td>제목</td>
-                <td>홍길동</td>
-                <td>2022-01-22</td>
-                <td>N</td>
-            </tr>
-
-            <tr>
-                <td>1</td>
-                <td>제목</td>
-                <td>홍길동</td>
-                <td>2022-01-22</td>
-                <td>N</td>
-            </tr>
-
-            <tr>
-                <td>1</td>
-                <td>제목</td>
-                <td>홍길동</td>
-                <td>2022-01-22</td>
-                <td>N</td>
-            </tr>
-
-            <tr>
-                <td>1</td>
-                <td>제목</td>
-                <td>홍길동</td>
-                <td>2022-01-22</td>
-                <td>N</td>
-            </tr>
-
-            <tr>
-                <td>1</td>
-                <td>제목</td>
-                <td>홍길동</td>
-                <td>2022-01-22</td>
-                <td>N</td>
-            </tr>
-
-            <tr>
-                <td>1</td>
-                <td>제목</td>
-                <td>홍길동</td>
-                <td>2022-01-22</td>
-                <td>N</td>
-            </tr>
-            <!-- 지워도되는 부분 여기까지 -->
-        </table>
-    </div>
-
-    <footer>
-    	<%@include file = "../footer.jsp"%>
-    </footer>
+         </div>
+      </div>
+	</div>
+   <%@include file="../footer.jsp"%>
 </body>
 </html>
