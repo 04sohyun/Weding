@@ -29,6 +29,8 @@ public class Member {
 	private String main_content;	//대분류 내용
 	private String mini_content;	//중분류 내용
 	private String current_content;	//
+	private String status;
+	
 	
 	private String tempPassword;
 	

@@ -53,8 +53,8 @@ public class ProductServiceImpl implements ProductService {
 	 * 작성자: 장동호
 	 */
 	@Override
-	public int payListTotal() {
-		int totCnt = pd.payListTotal();
+	public int payListTotal(Orders orders) {
+		int totCnt = pd.payListTotal(orders);
 		log.info("payListTotal totCnt -> " + totCnt);
 		
 		return totCnt;
@@ -322,7 +322,6 @@ public class ProductServiceImpl implements ProductService {
 		
 		return sortNewProduct;
 	}
-
 	
 	
 	/**
@@ -338,6 +337,7 @@ public class ProductServiceImpl implements ProductService {
 		return sortPopularProduct;
 	}
 	
+	
 	/**
 	 * 상품 달성순 정렬
 	 * 작성자: 안혜정
@@ -350,7 +350,7 @@ public class ProductServiceImpl implements ProductService {
 		
 		return sortGoalProduct;
 	}
-
+	
 	
 	/**
 	 * 상품상세보기
@@ -523,6 +523,41 @@ public class ProductServiceImpl implements ProductService {
 		productSoldList = pd.soldList(product);
 		
 		return productSoldList;
+	}
+
+
+	/**
+	 *  소비자의 상품 구매 내역 확인 (주문했던 상품은 주문 불가)
+	 *  작성자: 장동호
+	 */
+	@Override
+	public int orderCheck(Product orderProduct) {
+		int orderCheck = pd.orderCheck(orderProduct);
+		return orderCheck;
+	}
+
+
+	/**
+	 * soldListTotal
+	 */
+	@Override
+	public int soldListTotal(Product product) { 
+		int totCnt = pd.soldListTotal(product); 
+		log.info("soldListTotal totCnt -> " + totCnt); 
+		 
+		return totCnt; 
+	} 
+	
+	
+	/**
+     * 관리자페이지 - 전체 상품관리 상품이름 검색
+     * 작성자: 조소현
+     */
+	@Override
+	public List<Product> searchProductName(String keyword) {
+		System.out.println("ProductServiceImpl searchProductName Start");
+		List<Product> allproductListAll = pd.searchProductName(keyword);
+		return allproductListAll;
 	}
 	
 }

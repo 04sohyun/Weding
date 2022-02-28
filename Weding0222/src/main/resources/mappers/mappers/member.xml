@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.oracle.Weding.dao.MemberDao">
+
+	<!-- 회원정보 조회 -->
+	<select id="memberSelectOne" parameterType="String" resultType="Member">
+		select * from member where id = #{id}
+	</select>
+	
+	
+	<!-- 회원가입 -->
+	<insert id="memberJoin" parameterType="Member">
+		INSERT into member values(
+		#{id}, '100', '100', #{password}, #{name},
+		#{phone},
+		#{email}, #{zipCode}, #{roadAddress}, #{detailAddress}, '1'
+		)
+	</insert>
+
+
+	<!-- 로그인 -->
+	<select id="memberLoginSelectOne" parameterType="Member" resultType="Member">
+		<![CDATA[
+			select *
+			from member
+			where id=#{id} and password=#{password}
+			and   m_status >= '1'
+		]]>
+	</select>
+	
+	
+	<!-- 아이디 중복 체크 -->
+	<select id="memberIdConfirm" parameterType="Member" resultType="int">
+		select count(*)
+		from member
+		where id = #{id}
+	</select>
+	
+	
+	<!-- 회원정보 수정 -->
+	<update id="memberUpdate" parameterType="Member">
+		update member set name=#{name}, phone=#{phone}, email=#{email},
+						zipCode=#{zipCode}, roadAddress=#{roadAddress}, detailAddress=#{detailAddress}
+						where id=#{id}
+	</update>
+	
+	
+	<!-- 비밀번호 수정 -->
+	<update id="pwUpdate" parameterType="Member">
+		update member set password=#{password} where id=#{id}
+	</update>
+	
+	
+	<!-- 회원 탈퇴 -->
+	<update id="memberDelete" parameterType="Member">
+		update member set m_status = 0 where id = #{id}
+	</update>
+	
+	<!-- 회원 수 조회 -->
+	<select id="memberTotal" resultType="int">
+		select Count(*) FROM member
+	</select>
+	
+	<select id="allMemberList" parameterType="Member" resultType="Member">
+		select m.* ,c.c_content current_content,(case when m_status=1 then '활동중' else '탈퇴' end) status
+		from  (
+        select rownum rn, a.*
+        from (select * from member order by id) a
+      ) m ,cat c
+		where rn between #{start} and #{end}
+		and c.main_cat=m.main_cat
+		and c.mini_cat =m.mini_cat
+	</select>
+	
+	<update id="changeMemberLv" parameterType="Member">
+			update member
+			SET    mini_cat = #{mini_cat}
+			WHERE  id = #{id}
+	</update>
+	
+	<select id="memberCatList" parameterType="Member" resultType="Member">
+		<![CDATA[
+		select mini_cat, c_content mini_content
+		from cat 
+		where main_cat=100 
+		and mini_cat <> 999 
+		 ]]>
+	</select>
+	
+	<select id="memberIdFind" parameterType="Member" resultType="String">
+		select id from member
+		where name=#{name}
+		and phone=#{phone}
+		and m_status=1
+	</select>
+	
+	<select id="getMemberEmail" parameterType="Member" resultType="Member">
+		select * from member
+		where id=#{id}
+		and email=#{email}
+		and m_status=1
+	</select>
+	
+	<update id="randomPassword" parameterType="String">
+		update member
+		set password = #{tempPassword}
+		where id=#{id}
+		and m_status=1
+	</update>
+	
+	
+	<select id="getSearchMember" parameterType="String" resultType="Member">
+		select m.* ,c.c_content current_content,(case when m_status=1 then '활동중' else '탈퇴' end) status
+		from  
+         (select * from member order by id) m,
+         cat c
+		where c.main_cat=m.main_cat
+		and   c.mini_cat =m.mini_cat
+		and   id like '%' || #{keyword} || '%'
+	</select>
+	
+</mapper>

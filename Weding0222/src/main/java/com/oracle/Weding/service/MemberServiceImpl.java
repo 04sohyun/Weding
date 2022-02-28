@@ -195,9 +195,9 @@ public class MemberServiceImpl implements MemberService {
 	 * 작성자: 안혜정
 	 */
 	@Override
-	public String findId(Member member) {
+	public List<Member> findId(Member member) {
 		System.out.println("MemberServiceImpl findId Start.."); 
-		String idResult = md.findId(member);
+		List<Member> idResult = md.findId(member);
 		
 		return idResult;
 	}
@@ -237,6 +237,18 @@ public class MemberServiceImpl implements MemberService {
 	public void tempPassword(Member member) {
 		System.out.println("MemberServiceImpl tempPassword Start..");
 		int randomPassword = md.randomPassword(member);		
+	}
+	
+	
+	/**
+	 * 멤버 찾기
+	 * 작성자: 조소현
+	 */
+	@Override
+	public List<Member> getSearchMember(String keyword) {
+		System.out.println("MemberServiceImpl getSearchMember Start..");
+		List<Member> memberList = md.getSearchMember(keyword);
+		return memberList;
 	}
 	
 }

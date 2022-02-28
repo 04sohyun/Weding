@@ -28,4 +28,6 @@ public class Orders {
 	private String success;
 	
 	private int p_price;
+	
+	private String p_image1;
 }

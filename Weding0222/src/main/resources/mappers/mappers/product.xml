@@ -1,0 +1,524 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="ProductDao">
+
+	<!-- 펀딩예정 상품 갯수 조회    *펀딩예정, 펀딩중, 펀딩종료 상품 갯수 조회문 하나로 해도 될 듯..?
+		 작성자 - 장동호 -->
+	<select id="beforeFundListTotal" resultType="int"> 
+		select count(*) from product where p_condition = 1
+	</select>
+	
+	
+	<!-- 펀딩중/펀딩종료 상품 갯수 조회
+		작성자 - 장동호 -->
+	<select id="fundingListTotal" resultType="int"> 
+		select count(*) from product where p_condition = #{p_condition} and mini_cat = #{mini_cat}
+	</select>
+	
+	
+	<!-- 펀딩내역 갯수 조회
+		 작성자 - 장동호 -->
+   <select id="payListTotal" resultType="int">
+      select count(*) from ORDERS where ID = #{id}
+   </select>
+	
+	
+	<!-- 카테고리별 펀딩 상품 조회
+		 작성자 - 조소현, 장동호 -->
+	<select id="productList" parameterType="Product" resultType="Product">
+      <![CDATA[SELECT p.*, c1.c_content main_content, c2.c_content mini_content,
+            round((p_currentprice /p_goalprice)*100,2) attainment,
+            (case when  round(to_date(p.p_end)-sysdate) < 0 then '판매종료'
+      		 when  round(to_date(p.p_end)-sysdate) = 0 then '1일 남음' 
+ 			 else  to_char(ceil(to_number(round(to_date(p_end)-sysdate,1))))||'일 남음' end) leftdate
+      FROM (SELECT a.*
+            FROM (SELECT *
+                 FROM product
+                 where main_cat = #{main_cat}]]>
+                  <if test="p_condition != 1">
+                 <![CDATA[and mini_cat = #{mini_cat}]]>
+                 </if>
+                 <if test="p_condition == 1">
+                <![CDATA[ and mini_cat not in (#{mini_cat}) ]]>
+                 </if>
+                  <![CDATA[ and p_condition = #{p_condition}
+                 order by P_NUM) a) p,
+         (select * from cat where mini_cat='999') c1, 
+            (select * from cat where mini_cat<>'999') c2
+             WHERE p.main_cat = c1.main_cat
+             and   p.main_cat = c2.main_cat
+             and   p.mini_cat = c2.mini_cat]]>
+   </select>
+	
+	
+	<!-- 펀딩 내역 조회
+		 작성자 - 장동호 -->
+	<select id="payListAll" resultType="Orders">
+		select *
+		from (select ROWNUM rn, a.*
+		      from (select o.O_NUM, o.O_PAYDAY, p.p_name, o.O_SUM, p.P_CONDITION, o.O_SHIPSTATUS, o.id, o.p_num
+		            from ORDERS o, PRODUCT p
+		            where o.P_NUM = p.P_NUM
+		            and o.ID = #{id}
+		            order by O_NUM desc, O_PAYDAY desc) a
+		      )
+		where rn between #{start} and #{end}
+	</select>
+	
+	
+	<!-- 펀딩 취소
+		 작성자 - 장동호 -->
+	<delete id="payDelete" parameterType="Orders">
+		delete
+		from ORDERS
+		where ID = #{id}
+		and P_NUM = #{p_num}
+	</delete>
+	
+	
+	<!-- 메인 랜덤상품 조회
+		 작성자 - 장동호 -->
+   <select id="getRandomProduct" resultType="Product">
+      <![CDATA[
+      select p.*, c.c_content mini_content,round((p.p_currentprice /p.p_goalprice)*100,0) attainment
+      from cat c,
+          (select *
+            from PRODUCT
+            where P_CONDITION = '2'
+            order by DBMS_RANDOM.VALUE()) p
+      where ROWNUM <= 6
+      and   c.main_cat = p.main_cat
+      and   c.mini_cat = p.mini_cat
+      ]]>
+   </select>
+	
+	
+	<!-- 메인 인기상품 조회
+		 작성자 - 장동호 -->
+    <select id="getPopularProduct" resultType="Product">
+      <![CDATA[
+      SELECT p.*, c2.c_content mini_content,round((p_currentprice /p_goalprice)*100,0) attainment
+      FROM (select p_num, count(id) pop from dibs group by p_num) d,
+           product p,
+          (select * from cat where mini_cat='999') c1, 
+             (select * from cat where mini_cat<>'999') c2
+             WHERE d.p_num = p.p_num
+             and   p.p_condition=2
+             and   p.main_cat = c1.main_cat
+             and   p.main_cat = c2.main_cat
+             and   p.mini_cat = c2.mini_cat
+             and   ROWNUM <= 5
+             order by d.pop desc
+      ]]>
+   </select>
+	
+	
+	<!-- 메인 당일오픈 상품 조회
+       작성자 - 장동호 -->
+   <select id="getOpenProduct" resultType="Product">
+      <![CDATA[
+         select p.*,c.c_content mini_content,round((p.p_currentprice /p.p_goalprice)*100,0) attainment
+         from PRODUCT p, CAT c
+         where P_START = (select to_char(sysdate, 'yyyy-mm-dd') from dual)
+         and ROWNUM <= 6
+         and   c.main_cat = p.main_cat
+         and   c.mini_cat = p.mini_cat
+      ]]>
+   </select>
+	
+	
+	<!-- 메인 리뷰가 있는 상품 조회
+       작성자 - 장동호 -->
+   <select id="getReviewProduct" resultType="Product">
+      <![CDATA[
+         select *
+      from (select round((p.p_currentprice/p.p_goalprice)*100,0) attainment,p.*, c.c_content mini_content
+            from product p, cat c
+            where p_condition='3'
+            and p.mini_cat = c.mini_cat
+            order by attainment desc)a
+      where p_num in (select distinct (P_NUM) from board
+               where main_cat='300'
+               and mini_cat='400')
+      and ROWNUM <= 6
+      order by DBMS_RANDOM.VALUE()
+      ]]>
+   </select>
+	
+	
+	<!-- 상품 카테고리 조회
+		 작성자 - 장동호 -->
+	<select id="arrayCategoryList" resultType="Cat">
+		<![CDATA[select * from cat where main_cat=200 and mini_cat<>999 order by mini_cat]]>
+	</select>
+	
+	
+	<!-- 펀딩내역 조회
+		 작성자 - 장동호 -->
+	<insert id="ordersInformation" parameterType="Orders">
+		insert into ORDERS (ID, P_NUM, O_NUM, O_QTY, O_SUM, O_PHONE, O_ZIPCODE, O_ROADADDRESS, O_DETAILADDRESS, O_PAYDAY, O_SHIPSTATUS)
+		values (#{id}, #{p_num}, #{o_num}, #{o_qty}, #{o_sum}, #{o_phone}, #{o_zipcode}, #{o_roadAddress}, #{o_detailAddress}, sysdate, '상품준비중') 
+	</insert>
+	
+	
+	<!-- 주문: 현재달성금액 증가
+		 작성자 - 장동호 -->
+	<update id="sumCurPrice" parameterType="Orders"> 
+		update PRODUCT
+		set P_CURRENTPRICE = P_CURRENTPRICE + #{o_sum}
+		where P_NUM = #{p_num}
+	</update>
+	
+	
+	<!-- 주문: 현재달성금액 감소
+		 작성자 - 장동호 -->
+	<update id="subCurPrice" parameterType="Orders"> 
+		update PRODUCT
+		set P_CURRENTPRICE = P_CURRENTPRICE - #{o_sum}
+		where P_NUM = #{p_num}
+	</update>
+	
+	
+	   <!-- 마이페이지: 찜목록 조회
+       작성자 - 김태근 -->
+   <select id="dibsListAll" parameterType="Product" resultType="Product">
+      <![CDATA[
+         SELECT m.id consumer_id, c1.c_content main_content, c2.c_content mini_content, 
+               round((p.p_currentprice /p.p_goalprice)*100,2) attainment, 
+                  (case when  round(to_date(p.p_end)-sysdate) < 0 then '판매종료'
+                   when  round(to_date(p.p_end)-sysdate) = 0 then '오늘마감' 
+                 else  to_char(ceil(to_number(round(to_date(p_end)-sysdate,1))))||'일 남음' end) leftdate,
+                p.*
+         FROM  (SELECT * FROM member WHERE id = #{consumer_id}) m,
+               (select * from product where p_condition = '2') p, 
+               (SELECT * FROM cat WHERE mini_cat = '999') c1, 
+               (SELECT * FROM cat WHERE mini_cat <> '999') c2,
+               dibs d
+         WHERE  m.id = d.id
+         AND    d.p_num = p.p_num
+         AND    p.main_cat = c1.main_cat 
+         AND    p.main_cat = c2.main_cat 
+         AND    p.mini_cat = c2.mini_cat
+      ]]>
+   </select>
+	
+	
+	<!-- product total(김태근) -->
+	<select id="productTotal" resultType="int">
+		select Count(*) FROM product
+	</select>
+	
+	
+	<!-- 관리자페이지: 전체상품관리 List
+		 작성자 - 김태근 -->
+	<select id="allProductListAll" parameterType="Product" resultType="Product">
+		<![CDATA[
+			SELECT m.id consumer_id, p.*, c2.c_content mini_content, round((p.p_currentprice /p.p_goalprice)*100,0) attainment
+			FROM  (SELECT * FROM member WHERE id = 'admin') m,
+				  (SELECT rownum rn ,  a.* 
+				   FROM  (select * from product order by p_start desc) a) p,
+			      (select * from cat where mini_cat = '999') c1,
+			      (select * from cat where mini_cat <> '999') c2
+			WHERE rn between #{start} AND  #{end}
+			and   p.main_cat = c1.main_cat
+			and   p.main_cat = c2.main_cat
+			and   p.mini_cat = c2.mini_cat
+		]]>
+	</select>
+	
+	
+	<!-- 관리자페이지: 전체상품중 해당 상품 UpdateForm
+		 작성자  - 김태근 -->
+	<select id="allProductUpdateForm" parameterType="Product" resultType="Product">
+		<![CDATA[
+			    select m.id consumer_id, p.*
+			    from  (SELECT * FROM member WHERE id = 'admin') m,
+			    	   product p,
+			          (select * from cat where mini_cat = '999') c1,
+			          (select * from cat where mini_cat <> '999') c2
+			    where p.p_num = #{p_num}
+			    and   p.main_cat = c1.main_cat
+			    and   p.main_cat = c2.main_cat
+			    and   p.mini_cat = c2.mini_cat
+		]]>
+	</select>
+	
+	
+	<!-- 관리자페이지: 전체상품중 해당 상품Update
+	 	 작성자 - 김태근 -->
+	<update id="allProductUpdate" parameterType="Product">
+		update product 
+		set  mini_cat = #{mini_cat}, p_store = #{p_store}, p_name = #{p_name}, 
+			 p_image1 = #{p_image1}, p_image2 = #{p_image2}, p_description = #{p_description},
+			 p_price = #{p_price}
+		where p_num = #{p_num}
+	</update>
+	
+	
+	<!-- 관리자페이지: 전체상품중에 해당 상품 Delete
+		 작성자 - 김태근 -->
+		<!-- DIBS값을 count -> DIBS값이 null이 아니면 삭제 -->
+		<select id="tgSeleteDibs" resultType="int">
+		select Count(*) FROM DIBS where p_num = #{p_num}
+		</select>
+		<delete id="tgDeleteDibs" parameterType="String">
+			delete from DIBS where p_num=#{p_num}
+		</delete>
+		
+		<!-- board값을 count ->board값이 null이 아니면 삭제 -->
+		<select id="tgSeleteboard" resultType="int">
+			select Count(*) FROM board where p_num = #{p_num}
+		</select>
+		<delete id="tgDeleteboard" parameterType="String">
+			delete from board where p_num=#{p_num}
+		</delete>
+		
+		<!-- alarm값을 count -> alarm값이 null이 아니면 삭제 -->
+		<select id="tgSeleteAlarm" resultType="int">
+			select Count(*) FROM alarm where p_num = #{p_num}
+		</select>
+		<delete id="tgDeleteAlarm" parameterType="String">
+			delete from alarm where p_num=#{p_num}
+		</delete>
+		
+		<!-- orders값을 count -> orders값이 null이 아니면 삭제 -->
+		<select id="tgSeleteOrders" resultType="int">
+			select Count(*) FROM orders where p_num = #{p_num}
+		</select>
+		<delete id="tgDeleteOrders" parameterType="String">
+			delete from orders where p_num=#{p_num}
+		</delete>
+		
+		<!-- 위에 상품에 해당하는 게시글, 찜하기, 주문 삭제가 완료되면 product 삭제 -->
+		<delete id="tgDeleteProduct" parameterType="String">
+			delete from product where p_num=#{p_num}
+		</delete>
+
+
+	<!-- 상품 카테고리 리스트 -->
+	<select id="productCatList" parameterType="Product" resultType="Product">
+		<![CDATA[
+		select mini_cat, c_content mini_content
+		from cat 
+		where main_cat=200
+		and mini_cat <> 999 
+		order by mini_cat
+		 ]]>
+	</select>
+	
+	
+	<!-- 상품 추가 -->
+   <insert id="addProduct" parameterType="Product">
+      insert into product 
+      (mini_cat,p_store,p_name,p_price,p_image1,p_image2,
+      p_description,p_start,p_end,p_time,p_goalprice,id,main_cat,p_condition,p_num)
+      values 
+      (#{mini_cat},#{p_store},#{p_name},#{p_price},#{p_image1},#{p_image2},
+      #{p_description},#{p_start}, #{p_end},'12:00', #{p_goalprice},#{id},'200','1',PRODUCT_SEQ.nextval)
+   </insert>
+	
+	
+	<!-- 정렬:최신순 -->
+	<select id="sortNewProduct" resultType="Product">
+		<![CDATA[SELECT p.*, c1.c_content main_content, c2.c_content mini_content,
+				round((p_currentprice /p_goalprice)*100,0) attainment,
+				(case when  round(to_date(p.p_end)-sysdate) < 0 then '판매종료'
+      		 	 when  round(to_date(p.p_end)-sysdate) = 0 then '1일 남음' 
+ 			 	 else  to_char(ceil(to_number(round(to_date(p_end)-sysdate,1))))||'일 남음' end) leftdate
+		FROM product p,
+			(select * from cat where mini_cat='999') c1, 
+  		    (select * from cat where mini_cat<>'999') c2
+				 WHERE p.main_cat = c1.main_cat
+				 and   p.main_cat = c2.main_cat
+				 and   p.mini_cat = c2.mini_cat
+				 and   p.p_condition=2
+				 order by p_start desc]]>
+	</select>
+	
+	
+	<!-- 정렬:인기순 -->
+	<select id="sortPopularProduct" resultType="Product">
+	<![CDATA[SELECT d.p_num, d.pop, p.*, c1.c_content main_content, c2.c_content mini_content,
+				round((p_currentprice /p_goalprice)*100,0) attainment,
+				(case when  round(to_date(p.p_end)-sysdate) < 0 then '판매종료'
+      		 	 when  round(to_date(p.p_end)-sysdate) = 0 then '1일 남음' 
+ 			 	 else  to_char(ceil(to_number(round(to_date(p_end)-sysdate,1))))||'일 남음' end) leftdate
+		FROM (select p_num, count(id) pop from dibs group by p_num) d,
+	 		 product p,
+			 (select * from cat where mini_cat='999') c1, 
+  		     (select * from cat where mini_cat<>'999') c2
+				 WHERE d.p_num = p.p_num
+				 and   p.p_condition=2
+				 and   p.main_cat = c1.main_cat
+				 and   p.main_cat = c2.main_cat
+				 and   p.mini_cat = c2.mini_cat
+				 order by d.pop desc]]>
+	</select>
+	
+	
+	<!-- 정렬:달성순 -->
+	<select id="sortGoalProduct" resultType="Product">
+		<![CDATA[SELECT p.*, c1.c_content main_content, c2.c_content mini_content,
+				round((p_currentprice /p_goalprice)*100,0) attainment,
+				(case when  round(to_date(p.p_end)-sysdate) < 0 then '판매종료'
+      		 	 when  round(to_date(p.p_end)-sysdate) = 0 then '1일 남음' 
+ 			 	 else  to_char(ceil(to_number(round(to_date(p_end)-sysdate,1))))||'일 남음' end) leftdate
+				FROM  product p,
+					 (select * from cat where mini_cat='999') c1, 
+  		   			  (select * from cat where mini_cat<>'999') c2
+				 WHERE p.p_condition=2
+				 and   p.main_cat = c1.main_cat
+				 and   p.main_cat = c2.main_cat
+				 and   p.mini_cat = c2.mini_cat
+				 order by attainment desc]]>
+	</select>
+	
+	
+	<select id="productSelOne" parameterType="int" resultType="Product">
+		<![CDATA[select p.*, c1.c_content main_content, c2.c_content mini_content, 
+   	  				    NVL(o.countorders,0) countorders,
+   	  			        NVL(a.countAlarm,0) countAlarm,
+   	   				 	(case when  round(to_date(p.p_end)-sysdate) < 0 then '판매종료'
+      		 			 when  round(to_date(p.p_end)-sysdate) = 0 then '1일 남음' 
+ 			 			 else  to_char(ceil(to_number(round(to_date(p_end)-sysdate,1))))||'일 남음' end) leftdate
+				from (select * from product where p_num=#{p_num}) p, 
+  	 				 (select * from cat where mini_cat='999') c1, 
+  	 				 (select * from cat where mini_cat<>'999') c2, 
+				     (select p_num, count(*) countorders from orders group by p_num) o,
+				     (select p_num, count(*) countAlarm from alarm group by p_num) a
+				where p.p_num = o.p_num(+)
+				and	  p.p_num = a.p_num(+)
+				and   p.main_cat = c1.main_cat
+				and   p.main_cat = c2.main_cat
+				and   p.mini_cat = c2.mini_cat]]>
+	</select>
+	
+	
+	<select id="productAttainment" parameterType="int" resultType="int">
+	 	select round(p_currentprice/p_goalprice*100,0) from product where p_num=#{p_num}
+	</select>
+	
+	
+	<select id="recommendProductList" parameterType="int" resultType="Product">
+		<![CDATA[select p.*, c1.c_content main_content, c2.c_content mini_content,
+				round((p_currentprice /p_goalprice)*100,2) attainment
+		from (select * from product where p_condition=#{p_condition} order by dbms_random.value) p, 
+	 		 (select * from cat where mini_cat='999') c1, 
+	 		 (select * from cat where mini_cat<>'999') c2 
+		where rownum <= 5
+		and   p.main_cat = c1.main_cat
+		and	  p.main_cat = c2.main_cat
+		and	  p.mini_cat = c2.mini_cat]]>
+	</select>
+	
+	
+	<select id="productSearchList" parameterType="Product" resultType="Product">
+		<![CDATA[select p.*, c1.c_content main_content, c2.c_content mini_content,
+				(case when  round(to_date(p.p_end)-sysdate) < 0 then '판매종료'
+      		 	 when  round(to_date(p.p_end)-sysdate) = 0 then '오늘마감' 
+ 			 	 else  to_char(ceil(to_number(round(to_date(p_end)-sysdate,1))))||'일 남음' end) leftdate,
+				 round((p_currentprice /p_goalprice)*100,2) attainment 
+				from product p,
+					 (select * from cat where mini_cat='999') c1,
+					 (select * from cat where mini_cat<>'999') c2
+				where p.main_cat = c1.main_cat
+				and	  p.main_cat = c2.main_cat
+				and   p.mini_cat = c2.mini_cat
+				and   lower(p_name) like '%' || lower(#{keyword}) || '%'
+				and   p_condition = #{p_condition}]]>
+	</select>
+	
+	
+	<insert id="pushDibsProduct" parameterType="Dibs">
+		insert into dibs values(#{p_num}, #{id})
+	</insert>
+	
+	
+	<select id="dibsProduct" parameterType="Dibs" resultType="int">
+		select count(*) from dibs where id = #{id} and p_num = #{p_num}	
+	</select>
+	
+	
+	<delete id="cancleDibsProduct" parameterType="Dibs">
+		delete dibs where p_num=#{p_num} and id=#{id}
+	</delete>
+	
+	
+	<insert id="plzAlarmInsert" parameterType="Alarm">
+		insert into alarm(p_num, id, a_date) values(#{p_num},#{id},#{a_date, jdbcType=VARCHAR})
+	</insert>
+	
+	
+	<select id="alarmProduct" parameterType="Alarm" resultType="int">
+		select count(*) from alarm where p_num = #{p_num} and id = #{id} 
+	</select>
+	
+	
+	<delete id="plzAlarmDelete" parameterType="Alarm">
+		delete alarm where p_num=#{p_num} and id=#{id}
+	</delete>
+	
+	
+	<select id="getEmailList" parameterType="String" resultType="Alarm">
+		select a.p_num, p.p_name, a.id, m.name, m.email from alarm a, member m, product p
+		where a.p_num = #{p_num} and a.p_num = p.p_num and a.id = m.id
+	</select>
+	
+	
+	<!-- 상품이름 다 가져오기 -->
+	<select id="pNameTotal" resultType="Pname">
+		select p_name from product where p_condition in (2,3)
+	</select> 
+	
+	
+	<!-- <![CDATA[ -> <>를 사용하기위한 명령문 -->
+	<select id = "soldListAll" parameterType="Product" resultType="Product">
+      <![CDATA[
+      select p.*,round((p.p_currentprice/p.p_goalprice)*100,0)attainment,c2.c_content mini_content
+         from (SELECT rownum rn, a.*FROM (SELECT * FROM product where id=#{id} order by P_NUM) a) p,
+          (select * from cat where mini_cat= 999)c1,
+          (select * from cat where mini_cat <> 999)c2
+      WHERE rn between #{start} AND #{end}
+      and   p.main_cat = c1.main_cat
+      and   p.main_cat = c2.main_cat
+      and   p.mini_cat = c2.mini_cat
+      order by p_start desc
+      ]]>
+   </select>
+	
+	
+	<!-- 소비자의 상품 구매 내역 확인 (주문했던 상품은 주문 불가)
+	 	 작성자: 장동호 -->
+	 <select id="orderCheck" parameterType="Product" resultType="int">
+	 	select count(*)
+		from ORDERS
+		where P_NUM = #{p_num}
+		and ID = #{consumer_id}
+	 </select>
+	 
+	 <select id="soldTotal" resultType="int" parameterType="Product"> 
+		select count(*) from product where id=#{id} 
+	</select> 
+	
+	
+	
+	<!-- 관리자 페이지내 상품 검색 
+	 	 작성자: 조소현 -->
+	<select id="searchProductName" parameterType="String" resultType="Product">
+		<![CDATA[
+			SELECT m.id consumer_id, p.*, c2.c_content mini_content, round((p.p_currentprice /p.p_goalprice)*100,0) attainment
+			FROM  (SELECT * FROM member WHERE id = 'admin') m,
+				  (SELECT rownum rn ,  a.* 
+				   FROM  (select * from product order by to_number(p_num)) a) p,
+			      (select * from cat where mini_cat = '999') c1,
+			      (select * from cat where mini_cat <> '999') c2
+			WHERE lower(p.p_name) like '%' || lower(#{keyword}) || '%'
+			and   p.main_cat = c1.main_cat
+			and   p.main_cat = c2.main_cat
+			and   p.mini_cat = c2.mini_cat
+		]]>
+	</select>
+
+</mapper>

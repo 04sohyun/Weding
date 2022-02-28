@@ -9,7 +9,7 @@ public interface BoardService {
 	List<Board> 	reviewBoardList(Board board);
 	int 			reviewBoardWrite(Board board);
 	int 			qnaBoardListTotal();
-	int 			reviewBoardListTotal();
+	int 			reviewBoardListTotal(Board board);
 
 	int 				total(Board board);
 	List<Board> 		listBoard(Board board);
@@ -24,4 +24,9 @@ public interface BoardService {
 	Board  		        replyForm(int b_num);
 
 	int                 reply(Board board);
+	int					replyCount(Board board);
+	int 				sellerQnaTotal(Board board);
+	int 				qnaListTotal(Board board);
+	int cntAnswer(Board board11);
+	List<Board> getSearchBoard(Board board);
 }

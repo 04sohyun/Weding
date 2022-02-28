@@ -175,7 +175,6 @@ public class BoardDaoImpl implements BoardDao {
 		System.out.println("BoardDaoImpl sellerQna start...");
 		try {
 			sellerQna = session.selectList("sellerQnaAll",board);
-			
 		} catch (Exception e) {
 			System.out.println("BoardDaoImpl sellerQnaAll Exception "+e.getMessage());
 		}
@@ -270,7 +269,7 @@ public class BoardDaoImpl implements BoardDao {
 		List<Board> reviewBoardList = null;
 		try {
 			reviewBoardList = session.selectList("reviewBoardList", board);
-			log.info(reviewBoardList == null? "qnaBoardList is null":"qnaBoardList is not null");
+			log.info(reviewBoardList == null? "reviewBoardList is null":"reviewBoardList is not null");
 		} catch (Exception e) {
 			log.info("reviewBoardList(): " + e.getMessage());
 		}
@@ -301,15 +300,90 @@ public class BoardDaoImpl implements BoardDao {
 	 * 작성자: 장동호
 	 */
 	@Override
-	public int reviewBoardListTotal() {
+	public int reviewBoardListTotal(Board board) {
 		int tot = 0;
 		try {
-			tot = session.selectOne("reviewBoardListTotal");
+			tot = session.selectOne("reviewBoardListTotal", board);
 		}catch (Exception e) {
 			System.out.println("reviewBoardListTotal Exception -> " + e.getMessage());
 		}
 		
 		return tot;
+	}
+
+
+	@Override
+	public int replyCount(Board board) {
+		int result = 0;
+		try {
+			result = session.selectOne("replyCount", board);
+		}catch (Exception e) {
+			System.out.println("replyCount Exception -> " + e.getMessage());
+		}
+		
+		return result;
+	}
+
+
+	/**
+	 * Q&A 문의내역 갯수 
+	 */
+	@Override
+	public int sellerQnaTotal(Board board) {
+		int total = 0;
+		try {
+			total = session.selectOne("sellerQnaTotal", board);
+		}catch (Exception e) {
+			System.out.println("sellerQnaTotal Exception -> " + e.getMessage());
+		}
+		
+		return total;
+	}
+
+	
+	/**
+	 * 1대1 문의내역 갯수
+	 */
+	@Override
+	public int qnaListTotal(Board board) {
+		int total = 0;
+		try {
+			total = session.selectOne("qnaListTotal", board);
+		}catch (Exception e) {
+			System.out.println("qnaListTotal Exception -> " + e.getMessage());
+		}
+		
+		return total;
+	}
+
+
+	@Override
+	public int cntAnswer(Board board11) {
+		int idResult = 0;
+		try {
+			System.out.println(board11.getId()+"+"+board11.getP_num());
+			idResult = session.selectOne("pnumIdCount", board11);
+			System.out.println("idReslt="+idResult);
+		}catch (Exception e) {
+			System.out.println("cntAnswer Exception -> " + e.getMessage());
+		}
+		
+		return idResult;
+	}
+	
+	
+	//게시글 검색
+	@Override
+	public List<Board> getSearchBoard(Board board) {
+		System.out.println("BoardDaoImpl getSearchBoard Start…");
+		List<Board> listBoard = null;
+		try {
+			listBoard = session.selectList("getSearchBoard", board);
+			System.out.println("게시글검색결과개수->"+listBoard.size());
+		}catch(Exception e) {
+			System.out.println("BoardDaoImpl getSearchBoard Exception -> " + e.getMessage());
+		}
+		return listBoard;
 	}
 
 }

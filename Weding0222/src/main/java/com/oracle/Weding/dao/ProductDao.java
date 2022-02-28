@@ -19,7 +19,7 @@ public interface ProductDao {
 	List<Product> 	getReviewProduct();
 	int 			beforeFundListTotal();
 	int 			fundingListTotal(Product product);
-	int 			payListTotal();
+	int 			payListTotal(Orders orders);
 	List<Cat> 		arrayCategory();
 	int 			orders(Orders orders);
 	int 			sumCurPrice(Orders orders);
@@ -49,4 +49,7 @@ public interface ProductDao {
 	List<Alarm> 	getEmailList(String p_num);
 	List<Pname> 	searchPName();
 	List<Product> 	soldList(Product product);
+	int orderCheck(Product orderProduct);
+	int soldListTotal(Product product);
+	List<Product> searchProductName(String keyword);
 }

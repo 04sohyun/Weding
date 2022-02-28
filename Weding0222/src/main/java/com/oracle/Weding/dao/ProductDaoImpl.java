@@ -63,10 +63,10 @@ public class ProductDaoImpl implements ProductDao {
 	 * 작성자: 장동호
 	 */
 	@Override
-	public int payListTotal() {
+	public int payListTotal(Orders orders) {
 		int tot = 0;
 		try {
-			tot = session.selectOne("payListTotal"); 
+			tot = session.selectOne("payListTotal", orders); 
 			log.info("payListTotal tot -> " + tot);
 		} catch (Exception e) {
 			log.info("payListTotal Exception -> " + e.getMessage());
@@ -729,6 +729,58 @@ public class ProductDaoImpl implements ProductDao {
 		}
 		
 		return productSoldList;
+	}
+
+
+	/**
+	 *  소비자의 상품 구매 내역 확인 (주문했던 상품은 주문 불가)
+	 *  작성자: 장동호 
+	 */
+	@Override
+	public int orderCheck(Product orderProduct) {
+		int orderCheck = 0;
+		try {
+			orderCheck = session.selectOne("orderCheck", orderProduct);
+		} catch(Exception e) {
+			log.info("orderCheck Exception: " + e.getMessage());
+		}
+		
+		return orderCheck;
+	}
+
+
+	/**
+	 * soldListTotal
+	 */
+	@Override
+	public int soldListTotal(Product product) {
+		int tot = 0; 
+		try { 
+			tot = session.selectOne("soldTotal", product);  
+			log.info("soldListTotal tot -> " + tot); 
+		} catch (Exception e) { 
+			log.info("soldListTotal Exception -> " + e.getMessage()); 
+		} 
+		 
+		return tot;
+	}
+	
+	
+	/**
+     * 관리자페이지 - 전체 상품관리 상품이름 검색
+     * 작성자: 조소현
+     */
+	@Override
+	public List<Product> searchProductName(String keyword) {
+		System.out.println("ProductDaoImpl searchProductName Start");
+		List<Product> allproductListAll = null;
+		try {
+			allproductListAll = session.selectList("searchProductName", keyword);
+			System.out.println("검색된 상품개수는 "+allproductListAll.size());
+		}catch(Exception e) {
+			System.out.println("ProductDaoImpl allproductListAll Exception "+e.getMessage());
+		}
+		return allproductListAll;
 	}
 	
 }

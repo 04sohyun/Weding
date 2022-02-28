@@ -1,7 +1,10 @@
 package com.oracle.Weding.controller;
 
 import java.io.File;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -50,13 +53,14 @@ public class ProductController {
 	 * @return
 	 */
 	@RequestMapping(value = "main")
-	public String main(Model model, HttpSession session) {
-		if(session.getAttribute("member")!=null) {
-			Member m1 = (Member) session.getAttribute("member");
-			
-			Member member = ms.readMember(m1.getId());
-			session.setAttribute("member", member);
-		}
+    public String main(Model model,HttpSession session) {
+	    if(session.getAttribute("member")!=null) {
+	    	Member m1 = (Member) session.getAttribute("member");
+	     
+	        Member member = ms.readMember(m1.getId());
+	        session.setAttribute("member", member);
+	    }
+	  
 		List<Product> randomProduct = ps.getRandomProduct();
 		List<Product> popularProduct = ps.getPopularProduct();
 		List<Product> openProduct = ps.getOpenProduct();
@@ -65,7 +69,7 @@ public class ProductController {
 		model.addAttribute("popularProduct" ,popularProduct);
 		model.addAttribute("openProduct" ,openProduct);
 		model.addAttribute("reviewProduct" ,reviewProduct);
-		
+	  
 		return "main";
 	}
 	
@@ -86,21 +90,21 @@ public class ProductController {
 	 */
 	@GetMapping(value = "/beforeFundList")
 	public String beforeFundList(Product product,
-								 @RequestParam(value = "main_cat", defaultValue = "200") String main_cat, // default : main_cat = 200 
-								 @RequestParam(value = "mini_cat", defaultValue = "999") String mini_cat, // default : main_cat = 999 
-								 @RequestParam(value = "p_condition", defaultValue = "1") String p_condition, // default : p_condition = 1
-								 Model model) {
+                         @RequestParam(value = "main_cat", defaultValue = "200") String main_cat, // default : main_cat = 200 
+                         @RequestParam(value = "mini_cat", defaultValue = "999") String mini_cat, // default : main_cat = 999 
+                         @RequestParam(value = "p_condition", defaultValue = "1") String p_condition, // default : p_condition = 1
+                         Model model) {
 		int total = ps.beforeFundListTotal();
-		List<Product> productList = null;
-		product.setMain_cat(main_cat);
-		product.setMini_cat(mini_cat);
-		product.setP_condition(p_condition);
-		productList = ps.productList(product);
-		model.addAttribute("productList", productList);
-		model.addAttribute("total", total);
-		
-		return "/product/beforeFundList";
-	}
+	    List<Product> productList = null;
+	    product.setMain_cat(main_cat);
+	    product.setMini_cat(mini_cat);
+	    product.setP_condition(p_condition);
+	    productList = ps.productList(product);
+	    model.addAttribute("productList", productList);
+	    model.addAttribute("total", total);
+	  
+	    return "/product/beforeFundList";
+   }
 	
 	
 	/**
@@ -119,6 +123,7 @@ public class ProductController {
 	 */
 	@GetMapping(value = "/fundingList")
 	public String fundingList(Product product,
+							  @RequestParam(value = "currentPage", defaultValue = "1" ) String currentPage,
 			 				  @RequestParam(value = "main_cat", defaultValue = "200") String main_cat, 
 			 				  @RequestParam(value = "mini_cat", defaultValue = "101") String mini_cat, 
 			 				  @RequestParam(value = "p_condition", defaultValue = "2") String p_condition, 
@@ -131,10 +136,14 @@ public class ProductController {
 		product.setMini_cat(mini_cat);
 		product.setP_condition(p_condition);
 		int total = ps.fundingListTotal(product);
+		Paging pg = new Paging(total, currentPage);
+		product.setStart(pg.getStart());
+		product.setEnd(pg.getEnd());
 		List<Product> productList = null;
 		productList = ps.productList(product);
 		log.info(productList == null? "productlist is null":"productlist is not null");
 		model.addAttribute("productList", productList);
+		model.addAttribute("pg", pg);
 		model.addAttribute("total", total);
 		
 		return "/product/fundingList";
@@ -157,6 +166,7 @@ public class ProductController {
 	 */
 	@GetMapping(value = "/fundingEndList")
 	public String fundingEndList(Product product,
+							     @RequestParam(value = "currentPage", defaultValue = "1" ) String currentPage,
 			 				     @RequestParam(value = "main_cat", defaultValue = "200") String main_cat,
 				 				 @RequestParam(value = "mini_cat", defaultValue = "101") String mini_cat,
 				 				 @RequestParam(value = "p_condition", defaultValue = "3") String p_condition, 
@@ -168,10 +178,14 @@ public class ProductController {
 		product.setMini_cat(mini_cat);
 		product.setP_condition(p_condition);
 		int total = ps.fundingListTotal(product);
+		Paging pg = new Paging(total, currentPage);
+		product.setStart(pg.getStart());
+		product.setEnd(pg.getEnd());
 		List<Product> productList = null;
 		productList = ps.productList(product);
 		log.info(productList == null? "productlist is null":"productlist is not null");
 		model.addAttribute("productList", productList);
+		model.addAttribute("pg", pg);
 		model.addAttribute("total", total);
 		
 		return "/product/fundingEndList";
@@ -197,7 +211,7 @@ public class ProductController {
 		Member member = (Member) session.getAttribute("member");
 		orders.setId(member.getId());
 		
-		int total = ps.payListTotal();
+		int total = ps.payListTotal(orders);
 		Paging pg = new Paging(total, currentPage);
 		orders.setStart(pg.getStart());
 		orders.setEnd(pg.getEnd());
@@ -362,10 +376,33 @@ public class ProductController {
  	 * @param product
  	 * @param model
  	 * @return
+ 	 * @throws Exception 
+ 	 * @throws IOException 
  	 */
-	@GetMapping(value ="allProductUpdate")
-	public String allProductUpdate(Product product, Model model) {
+	@PostMapping(value ="allProductUpdate")
+	public String allProductUpdate(Product product, Model model, HttpServletRequest request, MultipartFile file1, MultipartFile file2) throws IOException, Exception {
 		System.out.println("ProductController allProductUpdate Start...");
+		
+		//상품사진업로드
+		System.out.println("file1->"+file1);
+		System.out.println("file2->"+file2);
+		String uploadPath = request.getSession().getServletContext().getRealPath("/upload/");
+		System.out.println("uploadForm POST Start");
+		log.info("originalName: " + file1.getOriginalFilename());
+		log.info("size: " + file1.getSize());
+		log.info("contentType: " + file1.getContentType());
+		log.info("uploadPath: " + uploadPath);
+	    
+	    String p_image11 = uploadFile(file1.getOriginalFilename(), file1.getBytes(), uploadPath);
+	    String p_image22 = uploadFile(file2.getOriginalFilename(), file2.getBytes(), uploadPath);
+		
+	    System.out.println("업로드한 p_image11->"+p_image11);
+	    System.out.println("업로드한 p_image22->"+p_image22);
+		
+	    //DB에 상품 insert 
+	    product.setP_image1(p_image11);
+	    product.setP_image2(p_image22);
+		
 		int allProductUpdate = ps.allProductUpdate(product);
 		System.out.println("ProductController allProductUpdate count -> " + allProductUpdate);
 		model.addAttribute("allProductUpdate", allProductUpdate);
@@ -409,20 +446,35 @@ public class ProductController {
 	
 	
 	/**
-	 * 판매자페이지 - 상품 등록 폼으로 이동
-	 * 작성자: 안혜정
-	 * 
-	 * @param model
-	 * @return
-	 */
-	@GetMapping(value = "addProductForm")
-	public String addProductForm(Model model) {
-		List<Product> catList = ps.listCat();
-		System.out.println("ProductController catList size() : "+catList.size());
-		model.addAttribute("catList",catList);
-		
-		return "product/addProductForm";
-	}
+	    * 판매자페이지 - 상품 등록 폼으로 이동
+	    * 작성자: 안혜정
+	    * 
+	    * @param model
+	    * @return
+	    */
+	   @GetMapping(value = "addProductForm")
+	   public String addProductForm(Model model) {
+	      List<Product> catList = ps.listCat();
+	      System.out.println("ProductController catList size() : "+catList.size());
+	      
+	      // 등록 최소 날짜
+	      SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+	      Date date = new Date();
+	      Calendar c = Calendar.getInstance();
+	      c.setTime(date);
+	      c.add(Calendar.DATE, 1);
+	      date = c.getTime();
+	      String now = sdf.format(date);
+	      
+	      c.add(Calendar.DATE, 60);
+	      String endDate = sdf.format(c.getTime());
+	      
+	      model.addAttribute("now", now);
+	      model.addAttribute("endDate",endDate);
+	      model.addAttribute("catList",catList);
+	      
+	      return "product/addProductForm";
+	   }
 	
 	
 	/**
@@ -468,7 +520,7 @@ public class ProductController {
 
 		int result = ps.insert(product);
 		
-		if(result>0) return "redirect:fundingList"; //합친 후에 리턴 확인하기
+		if(result>0) return "redirect:beforeFundList";
 		else {
 			model.addAttribute("msg","상품이 등록되지 않았습니다.");
 			return "addProductForm"; //리턴안됨 수정예정
@@ -535,7 +587,6 @@ public class ProductController {
 		
 		return "product/fundingList";
 	}
-
 	
 	
 	/**
@@ -560,11 +611,17 @@ public class ProductController {
 		//관련상품 받아오기 
 		List<Product> productList = ps.recommendProduct(p_condition);
 		
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+		Date date = new Date();
+		String now = sdf.format(date);
+		model.addAttribute("now", now);
+		
 		if(session.getAttribute("member")==null) {
 			product = ps.productDetail(p_num);
 			attainment = ps.attainment(p_num);
 			productList = ps.recommendProduct(p_condition);
-		}else {
+			
+		} else {
 		//세션 객체 안에 있는 ID정보 저장
 		Member m1 = (Member) session.getAttribute("member");
 		Member member= new Member();
@@ -573,6 +630,14 @@ public class ProductController {
 		//로그인한 아이디 확인
 		String loginId = m1.getId();
 		model.addAttribute("loginId", loginId);
+		
+		// 소비자의 상품 구매 내역 확인 (주문했던 상품은 주문 불가)
+		Product orderProduct = new Product();
+		orderProduct.setP_num(String.valueOf(p_num));
+		orderProduct.setConsumer_id(loginId);
+		int orderCheck = ps.orderCheck(orderProduct);
+		log.info("orderCheck: " + orderCheck);
+		model.addAttribute("orderCheck", orderCheck);
 		
 		//로그인 후 상품 찜하기 했는지 확인하기
 		Dibs dibs = new Dibs();
@@ -607,14 +672,15 @@ public class ProductController {
 	 * @return
 	 */
 	@GetMapping(value="getSearchProduct")
-	private String getSearchProduct(@RequestParam("keyword") String keyword, Model model){
+	private String getSearchProduct(Product product, Model model){
 		System.out.println("ProductController getSearchProduct Start...");
-		System.out.println("ProductController getSearchProduct keyword->"+keyword);
+		System.out.println("ProductController getSearchProduct keyword->"+product.getKeyword());
 		//펀딩 중 상품목록에서 카테고리 이름 정렬 가져오기
 		List<Cat> catList = ps.arrayCategory();
 		model.addAttribute("catList", catList);		
-		Product product = new Product();
-		product.setKeyword(keyword);
+		
+		//펀딩중/종료 구분하기 
+		System.out.println(product.getP_condition());
 		List<Product> productList = ps.getSearchList(product);
 		model.addAttribute("productList", productList);
 		return "product/fundingList";
@@ -696,7 +762,6 @@ public class ProductController {
 		alarm1.setP_num(alarm.getP_num());
 		alarm1.setA_date(alarm.getA_date());
 		alarm1.setId(member.getId());
-		System.out.println(alarm1.getA_date());
 		
 		int alarmNum = ps.plzAlarmInsert(alarm1);
 		String alarmNumStr = Integer.toString(alarmNum);
@@ -757,9 +822,15 @@ public class ProductController {
 	 */
 	
 	@GetMapping(value = "soldList")
-	public String soldList(Product product, String currentPage, Model model) {
+	public String soldList(Product product, String currentPage, Model model, HttpSession session) {
 		System.out.println("ProductController soldList Start... ");
-		int total  = ps.total();
+		
+		//세션 객체 안에 있는 ID정보 저장 
+		Member m1 = (Member) session.getAttribute("member"); 
+		product.setId(m1.getId()); 
+		
+		int total  = ps.soldListTotal(product); 
+		
 		System.out.println("ProductController total ->"+total);
 		System.out.println("currentPage - >"+currentPage);
 		
@@ -773,5 +844,18 @@ public class ProductController {
 		model.addAttribute("total",total);
 		return "/mypage/soldList";
 	}
+	
+	
+	/**
+     * 관리자페이지 - 전체 상품관리 상품이름 검색
+     * 작성자: 조소현
+     */
+ 	@GetMapping(value="searchProductName")
+ 	public String searchProductName(@RequestParam String keyword, String currentPage, Model model) {
+ 		System.out.println("ProductController searchProductName Start");
+ 		List<Product> allproductListAll = ps.searchProductName(keyword);
+ 		model.addAttribute("allproductListAll", allproductListAll);
+ 		return "admin/allProductList";
+ 	}
 	
 }

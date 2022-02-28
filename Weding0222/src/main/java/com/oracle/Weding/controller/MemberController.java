@@ -1,9 +1,12 @@
 package com.oracle.Weding.controller;
 
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.List;
 
 import javax.mail.internet.MimeMessage;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +18,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.oracle.Weding.dto.Member;
@@ -52,6 +56,7 @@ public class MemberController {
 	@PostMapping(value="join")
 	public String join(Member member) {
 		System.out.println("MemberController Start Join .");
+		member.setEmail(member.getEmail1()+"@"+member.getEmail2());
 		int result = ms.join(member);
 		
 		if(result>0) {
@@ -84,9 +89,10 @@ public class MemberController {
 	 * @param member
 	 * @param session
 	 * @return
+	 * @throws IOException 
 	 */
 	@RequestMapping(value="login") //로그인 
-	public String login(Member member, HttpSession session) { 
+	public String login(Member member, HttpServletResponse response, HttpSession session, Model model) throws IOException { 
 		System.out.println("MemberController Start Login.......");
 		Member result = ms.login(member);
 		
@@ -94,9 +100,13 @@ public class MemberController {
 			session.setAttribute("member", result);
 			return "redirect:main";
 		} else {
-			return "redirect:loginForm"; 
+			response.setContentType("text/html; charset=UTF-8");
+            PrintWriter out = response.getWriter();
+            out.println("<script>alert('로그인 정보를 확인해주세요.'); history.go(-1);</script>");
+            out.flush();
 		}
 		
+		return "login";
 	}
 	
 	
@@ -147,10 +157,12 @@ public class MemberController {
 	@RequestMapping(value="mailConfirm")
 	public String mailConfirm(HttpServletRequest request, Model model) {
 		System.out.println("mailSending...");
-		String tomail = request.getParameter("email");   // 받는 사람 이메일
+		String tomail1 = request.getParameter("email1");
+		String tomail2 = request.getParameter("email2"); // 받는 사람 이메일
+		String tomail = tomail1 + '@' + tomail2;
 		System.out.println("tomail " + tomail);
 		String setfrom = "wedingfunding@gmail.com";
-		String title = "mailConfirm 입니다";                 // 제목
+		String title = "[We_ding] 회원가입 인증번호입니다.";                 // 제목
 		String tempPassword = "";
 		try {
 			MimeMessage message = mailSender.createMimeMessage();
@@ -159,8 +171,9 @@ public class MemberController {
 			messageHelper.setTo(tomail);       // 받는사람 이메일
 			messageHelper.setSubject(title);   
 			tempPassword = (int) (Math.random() * 999999) + 1 + "";
-			messageHelper.setText("임시 비밀번호입니다 : " + tempPassword);
-			System.out.println("임시 비밀번호입니다 : " + tempPassword);
+			String content = "<h3>We_ding 이메인 인증번호입니다.<h3><hr><br> 이메인 인증번호 : " + tempPassword;
+			message.setText(content, "utf-8","html"); //메일 내용
+			System.out.println("이메일 인증번호 : " + tempPassword);
 			mailSender.send(message);
 			
 			model.addAttribute("check", 1);   // 정상 전달
@@ -219,8 +232,6 @@ public class MemberController {
 		}else {
 			model.addAttribute("msg", "회원 수정에 실패했습니다.");
 		}
-		
-	
 		
 		return "redirect:main";
 	}
@@ -283,34 +294,41 @@ public class MemberController {
 	 * 소비자 -> 판매자 전환시 멤버 리스트, 총 인원 출력
 	 * 작성자: 안혜정
 	 * 
-	 * @param member
+	 * @param member1
 	 * @param currentPage
 	 * @param model
 	 * @return
 	 */
 	@RequestMapping(value="allMemberList")
-	public String allMemberList(Member member,String currentPage, Model model) {
+	public String allMemberList(Member member1,String currentPage, Model model, HttpSession session) {
 		System.out.println("MemberController Start allMemberList..");
 		int total = ms.total(); //총 회원 수
 		System.out.println("MemberController total : "+total);
 		
 		System.out.println("currentPage : "+currentPage);
 		Paging pg = new Paging(total, currentPage);
-		member.setStart(pg.getStart()); //시작시 1
-		member.setEnd(pg.getEnd()); //시작시 10
+		member1.setStart(pg.getStart()); //시작시 1
+		member1.setEnd(pg.getEnd()); //시작시 10
 		
-		List<Member> memberList = ms.memberList(member); //회원 리스트
-		List<Member> catList = ms.catList(member); //회원 카테고리(소비자/판매자/관리자)
+		List<Member> memberList = ms.memberList(member1); //회원 리스트
+		List<Member> catList = ms.catList(member1); //회원 카테고리(소비자/판매자/관리자)
 		for(Member catList01 : catList ) {
 			System.out.println("catList01.getMini_cat()->"+catList01.getMini_cat());
 			System.out.println("catList01.getMini_content()->"+catList01.getMini_content());
 		}
 		System.out.println("MemberController list memberList.size() : " + memberList.size());
 		
+		Member m1 = (Member) session.getAttribute("member"); 
+		member1.setName(m1.getName()); 
+		member1.setMain_cat(m1.getMain_cat()); 
+		member1.setMini_cat(m1.getMini_cat()); 
+		System.out.println("MemberController  member1.getName() : " + member1.getName()); 
+		
 		model.addAttribute("memberList",memberList);
 		model.addAttribute("pg",pg);
 		model.addAttribute("total",total);
 		model.addAttribute("catList",catList);
+		model.addAttribute("member",member1); 
 		
 		return "admin/allMemberList";
 	}
@@ -359,12 +377,12 @@ public class MemberController {
 	 */
 	@RequestMapping(value="/member/idFindAjax", method = RequestMethod.POST)
 	@ResponseBody
-	public String idFindAjax(Member member) {
+	public List<Member> idFindAjax(Member member) {
 		System.out.println("MemberController idFindAjax Start..");
 		System.out.println("MemberController idFindAjax member.getName() : "+member.getName());
 		System.out.println("MemberController idFindAjax member.getPhone() : "+member.getPhone());
 		
-		String id = ms.findId(member);
+		List<Member> id = ms.findId(member); 
 		System.out.println("MemberController idFind id : "+id);
 		
 		return id;
@@ -398,7 +416,7 @@ public class MemberController {
 		System.out.println("MemberController 비밀번호 찾기 메일 전송..");
 		
 		String tomail = getMemberEmail.getEmail(); //받는사람 이메일
-		String setfrom = "boccioni1900@gmail.com"; //보내는 사람 이메일
+		String setfrom = "wedingfunding@gmail.com"; //보내는 사람 이메일
 		String title = "[We_ding] 임시 비밀번호입니다."; //제목
 		
 		try {
@@ -423,6 +441,35 @@ public class MemberController {
 		}
 	
 		return "member/idpwFindForm";
+	}
+	
+	
+	/**
+	 * 기본 배송지
+	 * 작성자: 장동호
+	 */
+	@RequestMapping(value = "defaultShipping")
+	@ResponseBody
+	public Member defaultShipping(String id) {
+		Member member = ms.readMember(id);
+		return member;
+	}
+	
+	
+	/**
+	 * 멤버 찾기
+	 * 작성자: 조소현
+	 */
+	@GetMapping(value="getSearchMember")
+	private String getSearchMember(@RequestParam String keyword, Model model) {
+		System.out.println("MemberController getSearchMember Start");
+		System.out.println("검색하는 키워드는 "+keyword);
+		List<Member> memberList = ms.getSearchMember(keyword);
+		Member member = new Member();
+		List<Member> catList = ms.catList(member);
+		model.addAttribute("memberList", memberList);
+		model.addAttribute("catList",catList);
+		return "admin/allMemberList";
 	}
 	
 }

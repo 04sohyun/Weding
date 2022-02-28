@@ -18,8 +18,9 @@ public interface MemberService {
 	List<Member> 	catList(Member member);
 	int 			update(Member member);
 	List<Member>	changeMemberLv();
-	String 			findId(Member member);
+	List<Member>	findId(Member member);
 	Member 			getMemberEmail(Member member);
 	int 			findPw(Member member);
 	void 			tempPassword(Member member);
+	List<Member> getSearchMember(String keyword);
 }

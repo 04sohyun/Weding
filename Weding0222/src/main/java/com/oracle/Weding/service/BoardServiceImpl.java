@@ -71,8 +71,8 @@ public class BoardServiceImpl implements BoardService {
 	 * 작성자: 장동호
 	 */
 	@Override
-	public int reviewBoardListTotal() {
-		int totCnt = bd.reviewBoardListTotal();
+	public int reviewBoardListTotal(Board board) {
+		int totCnt = bd.reviewBoardListTotal(board);
 		log.info("reviewBoardListTotal totCnt: " + totCnt);
 		
 		return totCnt;
@@ -182,7 +182,6 @@ public class BoardServiceImpl implements BoardService {
 	@Override
 	public List<Board> sellerQna(Board board) {
 		List<Board> sellerQna = null;
-		System.out.println("BoardServiceImpl sellerQna start...");
 		sellerQna = bd.sellerQna(board);
 		
 		return sellerQna;
@@ -216,5 +215,54 @@ public class BoardServiceImpl implements BoardService {
 	
 		return result1;
 	}
+
+
+	/**
+	 * 답변 여부
+	 */
+	@Override
+	public int replyCount(Board board) {
+		int result = bd.replyCount(board);
+		return result;
+	}
+
+	
+	/**
+	 * Q&A 문의내역 갯수 
+	 */
+	@Override
+	public int sellerQnaTotal(Board board) {
+		int total = bd.sellerQnaTotal(board);
+		
+		return total;
+	}
+
+
+	/**
+	 * 1대1 문의내역 갯수
+	 */
+	@Override
+	public int qnaListTotal(Board board) {
+		int total = bd.qnaListTotal(board);
+		
+		return total;
+	}
+
+
+	@Override
+	public int cntAnswer(Board board11) {
+		int idResult = bd.cntAnswer(board11);
+		return idResult;
+	}
+	
+	
+	//게시글 검색 
+	@Override
+	public List<Board> getSearchBoard(Board board) {
+		System.out.println("BoardServiceImpl getSearchBoard Start…");
+		List<Board> boardList = bd.getSearchBoard(board);
+		return boardList;
+	}
+	
 	
 }

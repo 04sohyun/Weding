@@ -29,7 +29,9 @@ public class Board {
 	
 	
 	private String answer;
-	   
-	   
-
+	
+	private String name;
+	
+	private String p_name;
+	private String member_mini_cat;
 }

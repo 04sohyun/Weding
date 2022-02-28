@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="BoardDao">
+
+	<select id="BoardTotal" parameterType="Board" resultType="Integer" > <!-- 쿼리 하나로 공통된 보드를 사용할수있다 -->
+		select count(*) from board
+		where main_cat = #{main_cat}
+		and mini_cat = #{mini_cat}
+		<if test="p_num != null">
+        	and p_num=#{p_num}
+        </if>
+	</select>
+	
+	
+	<select id="BoardListAll" parameterType="Board"   resultType="Board"> 
+       <![CDATA[
+        SELECT *
+      FROM (
+              SELECT rownum rn ,  a.*
+              FROM  (select * from board order by b_Group desc, b_Step asc,b_num desc) a
+              WHERE  main_cat = #{main_cat} AND mini_cat = #{mini_cat} ]]>
+              
+              <if test="p_num != null">
+              <![CDATA[and p_num=#{p_num}]]>
+              </if>
+        <![CDATA[    
+           )
+      WHERE  rn >= #{start} 
+      AND    rn <= #{end}
+        ]]>
+   </select>
+	
+	
+	<select id="BoardDetail" parameterType="int" resultType="Board">
+		select * From board Where b_num = #{b_num}
+	</select>
+	
+	
+	<update id="BoardUpdate" parameterType="Board">
+	 update board set b_title=#{b_title}, b_content=#{b_content} <if test="b_image != null"> , b_image = #{b_image}</if>
+			where b_num=#{b_num}
+	</update>
+	
+	
+	<insert id="insertBoard" parameterType="Board" >
+      insert into board (id,      b_num,          main_cat,    mini_cat,    b_title,     b_content,   b_date,
+                      <if test="b_image != null">b_image,</if>
+                      <if test="b_category != null">b_category,</if>    b_hit, b_Group,          b_Step,   b_level, p_num)
+                          
+      VALUES            (#{id}, BOARD_SEQ.nextval,#{main_cat}, #{mini_cat}, #{b_title}, #{b_content}, sysdate,
+                      <if test="b_image != null">#{b_image},</if>
+                      <if test="b_category != null">#{b_category},</if> 0,     BOARD_SEQ.currval, 0,       0,       #{p_num})
+    </insert>
+	
+	
+	<update id="Boardhit" parameterType="int">
+		UPDATE board SET b_hit = b_hit + 1
+		WHERE	b_num = #{b_num}
+	</update>
+	
+	
+	<delete id="BoardDelete" parameterType="int">
+		delete from board where b_num = #{b_num}
+	</delete>
+	
+	
+	<!--  -->
+	<select id="qnaListAll" parameterType="Board" resultType="Board">
+      <choose>
+         <when test="member_mini_cat == 100">
+             select *
+            from (select ROWNUM rn, a.*
+                  from (select b.B_NUM, p.P_NAME, b.B_TITLE, b.B_DATE, b.B_HIT, chk_reply3(b.b_group, b.mini_cat) answer
+                        from BOARD b, PRODUCT p
+                        where b.MINI_CAT = '300'
+                          and b.b_step='0'
+                          and b.ID = #{id}
+                          and b.P_NUM = p.P_NUM
+                        order by b.B_NUM desc) a)
+            where rn between #{start} and #{end}
+          </when>
+          <otherwise>
+             select *
+            from (select ROWNUM rn, a.*
+                  from (select b.B_NUM, p.P_NAME, b.b_title, b.B_DATE, b.B_HIT, chk_reply3(b.b_group, b.mini_cat) answer
+                        from BOARD b, (select *
+                                       from PRODUCT
+                                       where ID = #{id}) p
+                        where b.MINI_CAT = '300'
+                        and b.b_step='0'
+                        and b.P_NUM = p.P_NUM
+                        order by B_NUM desc) a )
+            where rn between #{start} and #{end}
+          </otherwise>
+       </choose>
+     </select>   
+     
+     <!-- Q&A 문의내역 갯수 -->
+	 <select id="sellerQnaTotal" resultType="int" parameterType="Board">
+		 select count(*)
+		 from BOARD
+		 where MINI_CAT = '200'
+	     and id = #{id}
+	 </select>
+	 
+	 <!-- 1:1 문의내역 갯수 -->
+	 <select id="qnaListTotal" resultType="int" parameterType="Board">
+	 	<choose>
+	 		<when test="member_mini_cat == 100">
+				 select count(*)
+				 from BOARD
+				 where MINI_CAT = '300'
+			     and id = #{id}
+		     </when>
+		     <otherwise>
+		     	select count(*)
+				from BOARD b, (select *
+				               from PRODUCT
+				               where ID = #{id}) p
+				where b.MINI_CAT = '300'
+				and b.P_NUM = p.P_NUM
+		     </otherwise>
+	     </choose>
+	 </select>
+	    
+	    
+	<select id = "sellerQnaAll" parameterType="Board" resultType="Board">
+      select *
+      from (select ROWNUM rn, a.*, chk_reply3(a.b_group, a.mini_cat) answer
+            from (select * from BOARD) a
+            where MINI_CAT = '200'
+            and id = #{id}
+            and b_step = 0) b
+      where rn between #{start} and #{end}
+      order by b_num desc
+   </select>
+	
+	
+	<!-- 답글 -->
+	<select id = "replyForm" resultType="Board" parameterType="int" >
+		select *
+		from board
+		where b_num = #{b_num}
+	</select>
+	
+	
+	<update id = "replyShape" parameterType="Board">
+		update Board set b_step= b_step + 1
+		where b_group = #{b_group} and b_step > #{b_step}
+	</update>
+
+
+	<insert id = "reply" parameterType="Board">
+		insert into Board(b_num, main_cat, mini_cat, id,
+						  b_title, b_content, b_date,
+						  b_hit, b_group,
+						  b_step, b_level, p_num)
+			 values (board_seq.nextval, #{main_cat},
+			  		 #{mini_cat}, #{id}, #{b_title},
+			  		 #{b_content}, sysdate,
+			 		 0,  #{b_group},
+			 		 #{b_step}+1, #{b_level}+1, #{p_num})
+	</insert>
+	
+	
+<!-- 	<select id="boardList" parameterType="Board"   resultType="Board"> mapping id 바꿔주세요
+		SELECT *
+		FROM (
+		        SELECT rownum rn ,  a.*
+		        FROM  (select * from board order by b_num) a
+		     )
+		WHERE rn between #{start} AND  #{end}
+	</select> -->
+	
+	
+	<select id="qnaBoardList" resultType="Board">
+      select *
+      from (select ROWNUM rn, a.*
+            from (select B_NUM, B_CATEGORY, B_TITLE, B_DATE, B_HIT, id, chk_reply3(b_group, mini_cat) answer
+                  from BOARD
+                  where MINI_CAT = '200'
+                  and B_STEP = 0
+                  order by B_NUM desc) a
+           )
+      where rn between #{start} and #{end}
+   </select>
+	
+	
+	<select id="reviewBoardList" resultType="Board" parameterType="Board">
+		select *
+		from BOARD
+		where MINI_CAT = '400'
+		  and P_NUM = #{p_num}
+		order by B_NUM desc
+	</select>
+	
+	
+	<insert id="reviewBoardWrite" parameterType="Product">
+		insert into
+		BOARD (B_NUM, MAIN_CAT, MINI_CAT, ID, B_TITLE, B_CONTENT, B_DATE, B_GROUP, B_STEP, B_LEVEL, P_NUM)
+		values (BOARD_SEQ.nextval, '300', '400', #{id}, #{b_content}, #{b_content}, sysdate, BOARD_SEQ.nextval, 0, 0, #{p_num})
+	</insert>
+	
+	
+	<select id="qnaBoardListTotal" resultType="int">
+		select count(*)
+		from BOARD
+		where MINI_CAT = '200'
+	</select>
+	
+	
+	<select id="reviewBoardListTotal" resultType="int" parameterType="Board">
+		select count(*)
+		from BOARD
+		where MINI_CAT = '400'
+		and P_NUM = #{p_num}
+	</select>
+	
+	
+	<select id="boardDetailView" resultType="Board">
+		select *
+		from BOARD
+		where B_NUM = #{b_num}
+	</select>
+	
+	
+	<select id="replyCount" resultType="int" parameterType="Board">
+		select count(*)
+		from board
+		where mini_cat = '200'
+		and b_group = #{b_num}
+	</select>
+	
+	
+	<!-- 소비자-판매자 간에 판매자가 자신의 상품일때만 답변을... -->
+	<select id="pnumIdCount" parameterType="board" resultType="int">
+		select count(*) cntAnswer
+		from product
+		where p_num = #{p_num, jdbcType=VARCHAR}
+		and id = #{id, jdbcType=VARCHAR}
+	</select>	
+	
+	
+	<select id="getSearchBoard" resultType="Board">
+	  select * from board where main_cat=#{main_cat} and mini_cat=#{mini_cat} and b_title like '%' || #{keyword} || '%'
+	</select>	
+	
+	
+</mapper>
