@@ -110,4 +110,13 @@
 		and m_status=1
 	</update>
 	
+	<select id="getSearchMember" parameterType="String" resultType="Member">
+		select m.* ,c.c_content current_content,(case when m_status=1 then '활동중' else '탈퇴' end) status
+		from  
+         (select * from member order by id) m,
+         cat c
+		where c.main_cat=m.main_cat
+		and   c.mini_cat =m.mini_cat
+		and   id like '%' || #{keyword} || '%'
+	</select>
 </mapper>

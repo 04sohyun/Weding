@@ -463,5 +463,7 @@
 		and   p.mini_cat = c2.mini_cat
 		]]>
 	</select>
+	
+	
 
 </mapper>
